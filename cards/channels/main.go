@@ -14,28 +14,36 @@ func main() {
 		"http://amazon.com",
 		"http://golang.org",
 	}
+
 	start := makeTimestamp()
 	var reported int64
 
+	c := make(chan string)
+	r := make(chan int64)
+
 	for _, link := range links {
-		reported += checkLink(link)
+		go checkLink(link, r, c)
 	}
 	end := makeTimestamp()
 	fmt.Println(reported, "miliseconds reported")
 	fmt.Println(end-start, "miliseconds in total")
 	fmt.Println(end-start-reported, "miliseconds overhead")
+
+	fmt.Println("go to sleep")
+	time.Sleep(10000000000)
+	fmt.Println("wacke up")
 }
 
-func checkLink(link string) int64 {
+func checkLink(link string, r chan int64, c chan string) {
 	start := makeTimestamp()
 	_, err := http.Get(link)
 	end := makeTimestamp()
 	if err != nil {
 		fmt.Println(end-start, link, "might be down!")
-		return end - start
+		r <- end - start
 	}
 	fmt.Println(end-start, link, "is up!")
-	return end - start
+	r <- end - start
 }
 
 func makeTimestamp() int64 {
