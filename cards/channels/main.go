@@ -17,48 +17,28 @@ func main() {
 		"http://www.apple.com/de/",
 	}
 
-	start := makeTimestamp()
-	var reported int64
-
 	c := make(chan string)
-	r := make(chan int64)
 
 	for _, link := range links {
-		go checkLink(link, r, c)
+		go checkLink(link, c)
 	}
 
-	for i := 0; i < len(links); i++ {
-
-		var time = <-r
-		var lastMessage = <-c
-		reported += time
-		//fmt.Println(time)
-		fmt.Println(lastMessage)
+	for l := range c {
+		go checkLink(l, c)
 	}
-
-	end := makeTimestamp()
-	fmt.Println(reported, "miliseconds reported")
-	fmt.Println(end-start, "miliseconds in total")
-	fmt.Println(reported-(end-start), "miliseconds saved due to parallelization")
-
-	//fmt.Println("go to sleep")
-	//time.Sleep(10000000000)
-	//fmt.Println("wacke up")
 }
 
-func checkLink(link string, r chan int64, c chan string) {
+func checkLink(link string, c chan string) {
 	start := makeTimestamp()
 	_, err := http.Get(link)
 	end := makeTimestamp()
 	if err != nil {
 		fmt.Println(end-start, link, "might be down!")
-		r <- end - start
-		c <- "Might be down I think"
+		c <- link
 		return
 	}
 	fmt.Println(end-start, link, "is up!")
-	r <- end - start
-	c <- "Yep its up"
+	c <- link
 }
 
 func makeTimestamp() int64 {
