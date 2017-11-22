@@ -13,6 +13,8 @@ func main() {
 		"http://stackoverflow.com",
 		"http://amazon.com",
 		"http://golang.org",
+		"http://vitraum.de",
+		"http://www.apple.com/de/",
 	}
 
 	start := makeTimestamp()
@@ -24,14 +26,24 @@ func main() {
 	for _, link := range links {
 		go checkLink(link, r, c)
 	}
+
+	for i := 0; i < len(links); i++ {
+
+		var time = <-r
+		var lastMessage = <-c
+		reported += time
+		//fmt.Println(time)
+		fmt.Println(lastMessage)
+	}
+
 	end := makeTimestamp()
 	fmt.Println(reported, "miliseconds reported")
 	fmt.Println(end-start, "miliseconds in total")
-	fmt.Println(end-start-reported, "miliseconds overhead")
+	fmt.Println(reported-(end-start), "miliseconds saved due to parallelization")
 
-	fmt.Println("go to sleep")
-	time.Sleep(10000000000)
-	fmt.Println("wacke up")
+	//fmt.Println("go to sleep")
+	//time.Sleep(10000000000)
+	//fmt.Println("wacke up")
 }
 
 func checkLink(link string, r chan int64, c chan string) {
@@ -41,9 +53,12 @@ func checkLink(link string, r chan int64, c chan string) {
 	if err != nil {
 		fmt.Println(end-start, link, "might be down!")
 		r <- end - start
+		c <- "Might be down I think"
+		return
 	}
 	fmt.Println(end-start, link, "is up!")
 	r <- end - start
+	c <- "Yep its up"
 }
 
 func makeTimestamp() int64 {
