@@ -29,7 +29,7 @@ func main() {
 			time.Sleep(5 * time.Second)
 			reported += checkLink(link, c)
 			count++
-			fmt.Println("avarage duration", "...........................", reported/count)
+			fmt.Println("average duration", "...........................", reported/count)
 		}(l)
 	}
 }
