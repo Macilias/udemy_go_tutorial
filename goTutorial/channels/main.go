@@ -16,7 +16,8 @@ func main() {
 		"http://vitraum.de",
 		"http://www.apple.com/de/",
 	}
-
+	var reported int64
+	var count int64
 	c := make(chan string)
 
 	for _, link := range links {
@@ -26,22 +27,25 @@ func main() {
 	for l := range c {
 		go func(link string) {
 			time.Sleep(5 * time.Second)
-			checkLink(link, c)
+			reported += checkLink(link, c)
+			count++
+			fmt.Println("avarage duration", "...........................", reported/count)
 		}(l)
 	}
 }
 
-func checkLink(link string, c chan string) {
+func checkLink(link string, c chan string) int64 {
 	start := makeTimestamp()
 	_, err := http.Get(link)
 	end := makeTimestamp()
 	if err != nil {
 		fmt.Println(end-start, link, "might be down!")
 		c <- link
-		return
+		return end - start
 	}
 	fmt.Println(end-start, link, "is up!")
 	c <- link
+	return end - start
 }
 
 func makeTimestamp() int64 {
